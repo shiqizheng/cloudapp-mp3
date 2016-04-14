@@ -1,51 +1,94 @@
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Map;
 
-import backtype.storm.Config;
-import backtype.storm.LocalCluster;
-import backtype.storm.StormSubmitter;
-import backtype.storm.topology.BasicOutputCollector;
+import backtype.storm.spout.SpoutOutputCollector;
+import backtype.storm.task.TopologyContext;
+import backtype.storm.topology.IRichSpout;
 import backtype.storm.topology.OutputFieldsDeclarer;
-import backtype.storm.topology.TopologyBuilder;
-import backtype.storm.topology.base.BaseBasicBolt;
 import backtype.storm.tuple.Fields;
-import backtype.storm.tuple.Tuple;
 import backtype.storm.tuple.Values;
 
-/**
- * This topology counts the words from sentences emmited from a random sentence spout.
- */
-public class TopWordFinderTopologyPartA {
-
-  public static void main(String[] args) throws Exception {
-
-    TopologyBuilder builder = new TopologyBuilder();
-
-    Config config = new Config();
-    config.setDebug(true);
+public class FileReaderSpout implements IRichSpout {
+  private SpoutOutputCollector _collector;
+  private TopologyContext context;
 
 
-    /*
+  @Override
+  public void open(Map conf, TopologyContext context,
+                   SpoutOutputCollector collector) {
+        file= "/cloudapp-mp3/data.txt";
+        BufferedReader buffIn=new BufferedReader(new FileReader(file));
+     /*
     ----------------------TODO-----------------------
-    Task: wire up the topology
+    Task: initialize the file reader
+        file= "/cloudapp-mp3/data.txt"
+        BufferedReader buffIn=new BufferedReader(new InputStreamReader(file));
 
-    NOTE:make sure when connecting components together, using the functions setBolt(name,…) and setSpout(name,…),
-    you use the following names for each component:
+    ------------------------------------------------- */
 
-    RandomSentanceSpout -> "spout"
-    SplitSentenceBolt -> "split"
-    WordCountBolt -> "count"
+    this.context = context;
+    this._collector = collector;
+  }
+  @Override
+  public void nextTuple() {
 
+  Utils.sleep(100);
+  string line = buffIn.readLine();
+  _collector.emit(new Values(line));
+
+     /*
+    ----------------------TODO-----------------------
+    Task:
+    1. read the next line and emit a tuple for it
+    2. don't forget to sleep when the file is entirely read to prevent a busy-loop
 
     ------------------------------------------------- */
 
 
-    config.setMaxTaskParallelism(3);
+  }
 
-    LocalCluster cluster = new LocalCluster();
-    cluster.submitTopology("word-count", config, builder.createTopology());
+  @Override
+  public void declareOutputFields(OutputFieldsDeclarer declarer) {
 
-    //wait for 60 seconds and then kill the topology
-    Thread.sleep(60 * 1000);
+    declarer.declare(new Fields("word"));
 
-    cluster.shutdown();
+  }
+
+  @Override
+  public void close() {
+   /*
+    ----------------------TODO-----------------------
+    Task: close the file
+
+
+    ------------------------------------------------- */
+      buffIn.close()
+  }
+
+
+  @Override
+  public void activate() {
+  }
+
+  @Override
+  public void deactivate() {
+  }
+
+  @Override
+  public void ack(Object msgId) {
+  }
+
+  @Override
+  public void fail(Object msgId) {
+  }
+
+  @Override
+  public Map<String, Object> getComponentConfiguration() {
+    return null;
   }
 }
+
+
